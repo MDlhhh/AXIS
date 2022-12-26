@@ -45,36 +45,36 @@ input [DATA_BYTE_WD-1 : 0] keep_insert,
 output ready_insert
 );
 
-reg [DATA_BYTE_WD-1 : 0]    r1_keep_in   = 0;
-reg [DATA_WD-1 : 0]         r1_data      = 0;
-reg                         r1_last      = 0;
-reg                         flag         = 0;
-reg                         valid_r1     = 0;
+reg [DATA_BYTE_WD-1 : 0]    reg_r1_keep_in   ;
+reg [DATA_WD-1 : 0]         reg_r1_data      ;
+reg                         reg_r1_last      ;
+reg                         flag         ;
+reg                         valid_r1     ;
 wire                        ready_r1     ;
 
 
-reg [DATA_WD-1 : 0]         data_p2s     = 0;
-reg [DATA_BYTE_WD-1 : 0]    keep_in_p2s  = 0;
-reg [DATA_BYTE_WD-1 : 0]    last_p2s     = 0;
-reg [8-1 : 0]               data_r2      = 0;
-reg                         flag_p2s     = 0;
-reg                         flag_p2s_d1  = 0;
-reg                         flag_p2s_d2  = 0;
-reg                         flag_p2s_d3  = 0;
-reg                         valid_r2     = 0;
-reg                         last_r2      = 0;
-wire                        enbale_p2s;
-wire                        ready_r2 ;     
+reg [DATA_WD-1 : 0]         reg_data_p2s     ;
+reg [DATA_BYTE_WD-1 : 0]    reg_keep_in_p2s  ;
+reg [DATA_BYTE_WD-1 : 0]    reg_last_p2s     ;
+reg [8-1 : 0]               reg_data_r2      ;
+reg                         flag_p2s     ;
+reg                         flag_p2s_d1  ;
+reg                         flag_p2s_d2  ;
+reg                         flag_p2s_d3  ;
+reg                         valid_r2     ;
+reg                         last_r2      ;
+wire                        wire_enbale_p2s   ;
+wire                        ready_r2     ;     
 
-reg [DATA_WD-1 : 0]         data_r3      = 0;
-reg [DATA_BYTE_WD-1 : 0]    keep_out_r3  = 0;
-reg [1:0]                   last_posion  = 0;
-reg [1:0]                   cnt_s2p      = 0;
-reg [DATA_WD-1 : 0]         data_s2p     = 0;
-reg                         last_flag    = 0;
-reg                         flag_s2p     = 0;
-reg                         last_r3      = 0;        
-reg                         valid_r3     = 0;
+reg [DATA_WD-1 : 0]         reg_data_r3      ;
+reg [DATA_BYTE_WD-1 : 0]    reg_keep_out_r3  ;
+reg [1:0]                   reg_last_posion  ;
+reg [1:0]                   cnt_s2p      ;
+reg [DATA_WD-1 : 0]         reg_data_s2p     ;
+reg                         last_flag    ;
+reg                         flag_s2p     ;
+reg                         last_r3      ;        
+reg                         valid_r3     ;
 wire                        ready_r3     ;
 
 // 第一级 接收参数
@@ -122,30 +122,30 @@ always @(posedge clk )
 begin
     if (~rst_n) 
     begin
-        r1_keep_in <= 0;
-        r1_data <= 0;
-        r1_last <= 0;
+        reg_r1_keep_in <= 0;
+        reg_r1_data <= 0;
+        reg_r1_last <= 0;
     end    
     else
     begin
         if (valid_insert & ready_insert) 
         begin
-            r1_keep_in <= keep_insert;
-            r1_data <= header_insert;
-            r1_last <= 0;
+            reg_r1_keep_in <= keep_insert;
+            reg_r1_data <= header_insert;
+            reg_r1_last <= 0;
         end
         else if (valid_in & ready_in)
         begin
-            r1_keep_in <= keep_in;
-            r1_data <= data_in;
-            r1_last <= last_in;
+            reg_r1_keep_in <= keep_in;
+            reg_r1_data <= data_in;
+            reg_r1_last <= last_in;
         end
     end
 end
 
 // 第二级 并串转换
 
-assign ready_r1 =  ready_r2 & ~enbale_p2s;
+assign ready_r1 =  ready_r2 & ~wire_enbale_p2s;
 
 always @(posedge clk ) 
 begin
@@ -167,22 +167,24 @@ always @(posedge clk )
 begin
     if (~rst_n) 
     begin
-        
+        reg_last_p2s <= 0;
+        reg_data_p2s <= 0;
+        reg_keep_in_p2s <= 0;
     end 
     else 
     begin
         if (valid_r1 & ready_r1) 
         begin
             // flag_p2s <= 1;
-            data_p2s <= r1_data;
-            keep_in_p2s <= r1_keep_in;
-            if (r1_last) 
+            reg_data_p2s <= reg_r1_data;
+            reg_keep_in_p2s <= reg_r1_keep_in;
+            if (reg_r1_last) 
             begin
-                case (r1_keep_in)
-                    4'b1111: last_p2s <= 4'b0001;
-                    4'b1110: last_p2s <= 4'b0010;
-                    4'b1100: last_p2s <= 4'b0100;
-                    4'b1000: last_p2s <= 4'b1000;
+                case (reg_r1_keep_in)
+                    4'b1111: reg_last_p2s <= 4'b0001;
+                    4'b1110: reg_last_p2s <= 4'b0010;
+                    4'b1100: reg_last_p2s <= 4'b0100;
+                    4'b1000: reg_last_p2s <= 4'b1000;
                 endcase               
             end
         end
@@ -200,19 +202,19 @@ begin
     flag_p2s_d3 <= flag_p2s_d2;
 end
 
-assign enbale_p2s = flag_p2s || flag_p2s_d1 || flag_p2s_d2 || flag_p2s_d3;
+assign wire_enbale_p2s = flag_p2s || flag_p2s_d1 || flag_p2s_d2 || flag_p2s_d3;
 
 always @(posedge clk ) 
 begin
-    if (enbale_p2s & ready_r2) 
+    if (wire_enbale_p2s & ready_r2) 
     begin
-        keep_in_p2s <= keep_in_p2s << 1;
-        data_p2s <= data_p2s << 8;
-        last_p2s <= last_p2s << 1;
+        reg_keep_in_p2s <= reg_keep_in_p2s << 1;
+        reg_data_p2s <= reg_data_p2s << 8;
+        reg_last_p2s <= reg_last_p2s << 1;
 
-        data_r2 <= data_p2s[DATA_WD-1:DATA_WD-8];
-        valid_r2 <= keep_in_p2s[3];
-        last_r2 <= last_p2s[3];
+        reg_data_r2 <= reg_data_p2s[DATA_WD-1:DATA_WD-8];
+        valid_r2 <= reg_keep_in_p2s[3];
+        last_r2 <= reg_last_p2s[3];
     end   
     else
     begin
@@ -241,23 +243,24 @@ always @(posedge clk )
 begin
     if (~rst_n) 
     begin
-
+        cnt_s2p <= 0;
+        flag_s2p <= 0;
     end 
     else 
     begin
         if (flag_s2p) 
         begin
             // valid_r3 <= 1;
-            data_r3 <= data_s2p;           
+            reg_data_r3 <= reg_data_s2p;           
             if (last_flag) 
             begin
                 last_r3 <= 1;
-                keep_out_r3 <= last_posion;
+                reg_keep_out_r3 <= reg_last_posion;
             end
             else
             begin
                 last_r3 <= 0;
-                keep_out_r3 <= 0;
+                reg_keep_out_r3 <= 0;
             end
         end
         // else
@@ -272,7 +275,7 @@ begin
                 if (last_r2) 
                 begin
                     last_flag <= 1;
-                    last_posion <= cnt_s2p;
+                    reg_last_posion <= cnt_s2p;
                 end
                 else
                 begin
@@ -286,10 +289,10 @@ begin
             end
             
             case (cnt_s2p)
-                2'b00: data_s2p[DATA_WD-1 :DATA_WD-8 ] <= data_r2;
-                2'b01: data_s2p[DATA_WD-9 :DATA_WD-16] <= data_r2;
-                2'b10: data_s2p[DATA_WD-17:DATA_WD-24] <= data_r2;
-                2'b11: data_s2p[DATA_WD-25:DATA_WD-32] <= data_r2;
+                2'b00: reg_data_s2p[DATA_WD-1 :DATA_WD-8 ] <= reg_data_r2;
+                2'b01: reg_data_s2p[DATA_WD-9 :DATA_WD-16] <= reg_data_r2;
+                2'b10: reg_data_s2p[DATA_WD-17:DATA_WD-24] <= reg_data_r2;
+                2'b11: reg_data_s2p[DATA_WD-25:DATA_WD-32] <= reg_data_r2;
             endcase 
         end
         else 
@@ -332,11 +335,11 @@ begin
 
         if (valid_r3 & ready_r3) 
         begin            
-            data_out <= data_r3;
+            data_out <= reg_data_r3;
             if (last_r3)
             begin
                 last_out <= 1;
-                case (last_posion)
+                case (reg_last_posion)
                     0: keep_out <= 4'b1000;
                     1: keep_out <= 4'b1100;
                     2: keep_out <= 4'b1110;
